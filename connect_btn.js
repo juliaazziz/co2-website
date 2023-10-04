@@ -79,7 +79,7 @@ async function readInto(reader, buffer) {
     return buffer;
 }
 
-/* Leo datos, parseo y guardo en JSON */
+/* Leo datos, parseo y actualizo gráfica */
 async function readFromUART() {    
     const reader = port.readable.getReader({ mode: "byob" });
     let data_str, match, temp; 
