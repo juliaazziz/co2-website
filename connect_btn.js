@@ -59,6 +59,8 @@ const dataChart = new Chart(
 /* Funciones para conexión serial */
 
 let port;
+var co2 = 0;
+var temp = 0;
 
 async function connectToSerialPort() {
     try {
@@ -124,6 +126,9 @@ async function readFromUART() {
             dataChart.data.datasets[0].data.push(co2);
             dataChart.data.datasets[1].data.push(temp);
             dataChart.update();
+
+            /* Actualizo última medida desplegada */
+            document.getElementById("measurements").innerHTML = "Última medida: " + co2.toString() + " ppm, " + temp.toString() + " °C";
 
             /* Si hay demasiados puntos solo muestro los últimos */
             if (dataChart.data.datasets[0].data.length > MAX_POINTS) {
