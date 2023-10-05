@@ -1,5 +1,5 @@
 const BAUDRATE = 115200;
-const regex = /T(\d{2})/;       // Reg exp. para parsear los datos
+const regex = /C(\d+)/;
 
 const connectButton = document.getElementById('connect_btn');
 let port;
@@ -82,7 +82,7 @@ async function readInto(reader, buffer) {
 /* Leo datos, parseo y actualizo gráfica */
 async function readFromUART() {    
     const reader = port.readable.getReader({ mode: "byob" });
-    let data_str, match, temp; 
+    let data_str, match, co2; 
 
     while (true) {
         buffer = await readInto(reader, buffer);
@@ -91,10 +91,9 @@ async function readFromUART() {
         data_str = new TextDecoder().decode(buffer);
         match = data_str.match(regex);
         if (match) {
-            temp = parseInt(match[1], 10);
-            console.log(temp);
+            co2 = parseInt(match[1], 10);
             dataChart.data.labels.push(new Date().toLocaleTimeString());
-            dataChart.data.datasets[0].data.push(temp);
+            dataChart.data.datasets[0].data.push(co2);
             dataChart.update();
         }
     }
