@@ -1,6 +1,6 @@
 const BAUDRATE = 115200;
 const MAX_POINTS = 100;
-const regex = /C(\d+)/;
+const regex = /C(\d+)T(\d+)/;
 
 const connectButton = document.getElementById('connect_btn');
 let port;
@@ -21,14 +21,37 @@ const dataChart = new Chart(
             }
         },
         responsive: true,
-        stacked: false
+        stacked: false,
+        scales: {
+            y: {
+              type: 'linear',
+              display: true,
+              position: 'left',
+            },
+            y1: {
+              type: 'linear',
+              display: true,
+              position: 'right',
+      
+              // grid line settings
+              grid: {
+                drawOnChartArea: false, // only want the grid lines for one axis to show up
+              }
+            }
+        }
     },
     data: {
         labels: [],
         datasets: [
         {
             label: 'Concentración de CO2 (ppm)',
-            data: [].slice(-2),
+            data: [],
+            yAxisID: 'y'
+        },
+        {
+            label: 'Temperatura (°C)',
+            data: [],
+            yAxisID: 'y1'
         }
         ]
     }
@@ -59,42 +82,44 @@ async function getReader() {
     }, 1500);
 }
 
-let buffer = new ArrayBuffer(10);
-let view = new Uint8Array(buffer);
-
 /* Función auxiliar para leer buffer y guardar datos */
 async function readInto(reader, buffer) {
     let offset = 0;
+    let buf_str = "";
+    let str;
 
-    while (offset < buffer.byteLength) {
-      const { value, done } = await reader.read(
-        new Uint8Array(buffer, offset)
-      );
-      if (done) {
-        break;
-      }
-      buffer = value.buffer;
-      offset += value.byteLength;
+    while ((offset < 18) && (str != "\r")) {
+        const { value, done } = await reader.read( new Uint8Array(buffer));
+        if (done) {
+            break;
+        }
+        buffer = value.buffer;
+        str = new TextDecoder().decode(buffer);
+        offset += value.byteLength;
+        buf_str += new TextDecoder().decode(buffer);
     }
-
-    return buffer;
+    return buf_str;
 }
 
 /* Leo datos, parseo y actualizo gráfica */
 async function readFromUART() {    
     const reader = port.readable.getReader({ mode: "byob" });
-    let data_str, match, co2; 
-
+    let data_str, match, co2, temp; 
+    
     while (true) {
-        buffer = await readInto(reader, buffer);
+        let buffer = new ArrayBuffer(1);
+        data_str = await readInto(reader, buffer);
+        console.log(data_str);
 
         /* Paso a string y busco datos */
-        data_str = new TextDecoder().decode(buffer);
         match = data_str.match(regex);
         if (match) {
             co2 = parseInt(match[1], 10);
+            temp = parseInt(match[2], 10);
+
             dataChart.data.labels.push(new Date().toLocaleTimeString());
             dataChart.data.datasets[0].data.push(co2);
+            dataChart.data.datasets[1].data.push(temp);
             dataChart.update();
 
             /* Si hay demasiados puntos solo muestro los últimos */
