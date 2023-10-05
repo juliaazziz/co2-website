@@ -1,4 +1,5 @@
 const BAUDRATE = 115200;
+const MAX_POINTS = 100;
 const regex = /C(\d+)/;
 
 const connectButton = document.getElementById('connect_btn');
@@ -27,7 +28,7 @@ const dataChart = new Chart(
         datasets: [
         {
             label: 'Concentración de CO2 (ppm)',
-            data: [],
+            data: [].slice(-2),
         }
         ]
     }
@@ -95,6 +96,12 @@ async function readFromUART() {
             dataChart.data.labels.push(new Date().toLocaleTimeString());
             dataChart.data.datasets[0].data.push(co2);
             dataChart.update();
+
+            /* Si hay demasiados puntos solo muestro los últimos */
+            if (dataChart.data.datasets[0].data.length > MAX_POINTS) {
+                dataChart.data.labels.shift();
+                dataChart.data.datasets[0].data.shift();
+            }
         }
     }
 }
