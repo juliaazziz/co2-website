@@ -26,12 +26,16 @@ const dataChart = new Chart(
                     type: 'linear',
                     display: true,
                     position: 'left',
+                    min: 0,
+                    max: 4000,
+
                 },
                 y1: {
                     type: 'linear',
                     display: true,
                     position: 'right',
-
+                    min: 15,
+                    max: 25,
                     grid: {
                         drawOnChartArea: false,
                     }
@@ -59,12 +63,11 @@ const dataChart = new Chart(
 /* Funciones para conexión serial */
 
 let port;
-var co2 = 0;
-var temp = 0;
 
 async function connectToSerialPort() {
     try {
         /* Conecta al puerto elegido */
+
         port = await navigator.serial.requestPort();
         await port.open({ baudRate: BAUDRATE });
         console.log(`Conectado a ${port.getInfo().usbProductId}`);
